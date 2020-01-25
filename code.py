@@ -1,4 +1,5 @@
-# CircuitPython NeoPixel Color Picker Example
+# CircuitPython Controller and NeoPixel Color Picker Example
+# Based on code by Adafruit, modified by Mr. Swanson
 
 import board
 import neopixel
@@ -10,12 +11,15 @@ from adafruit_bluefruit_connect.packet import Packet
 from adafruit_bluefruit_connect.color_packet import ColorPacket
 from adafruit_bluefruit_connect.button_packet import ButtonPacket
 
+# set up bluetooth instance
 ble = BLERadio()
 uart_server = UARTService()
 advertisement = ProvideServicesAdvertisement(uart_server)
 
+# set up neopixels
 pixels = neopixel.NeoPixel(board.NEOPIXEL, 10, brightness=0.1)
-print("starting")
+
+# Main loop
 while True:
     # Advertise when not connected.
     ble.start_advertising(advertisement)
@@ -25,10 +29,12 @@ while True:
 
     while ble.connected:
         packet = Packet.from_stream(uart_server)
+        # Check if packet is for the colorpicker or controller
         if isinstance(packet, ColorPacket):
             print(packet.color)
             pixels.fill(packet.color)
         elif isinstance(packet, ButtonPacket):
+            # Select action based on which button is pressed
             if packet.button == '1':
                 print("Button 1")
             elif packet.button == '2':
